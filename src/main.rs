@@ -5,10 +5,8 @@ use futures::future::join_all;
 use regex::Regex;
 use scraper::{Html, Selector};
 use std::path::Path;
-use std::sync::Arc;
 use tokio::fs::File;
 use tokio::prelude::*;
-use tokio::sync::Semaphore;
 
 const INDEX_URL: &'static str = "https://apod.nasa.gov/apod/archivepix.html";
 const ENTRY_PREFIX: &'static str = "https://apod.nasa.gov/apod/";
@@ -20,7 +18,7 @@ struct Opts {
     directory: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Entry {
     url: String,
     title: String,
@@ -62,9 +60,7 @@ impl Entry {
     async fn download_file(
         &self,
         directory: String,
-        sem: Arc<Semaphore>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = sem.acquire().await;
         if let Some(url) = self.get_img_url().await {
             let extension_re = Regex::new(r"\.html$").unwrap();
             let fname = format!(
@@ -76,13 +72,8 @@ impl Entry {
             let path = &*p.to_string_lossy();
 
             if !p.exists() {
-                let _ = sem.acquire().await;
                 let response = reqwest::get(&*url).await?.bytes().await?;
-
-                let _ = sem.acquire().await;
                 let mut dest = File::create(path).await?;
-
-                let _ = sem.acquire().await;
                 dest.write_all(&response).await?;
             } else {
                 println!("Skipping file {}, file exists", path);
@@ -125,21 +116,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    let semaphore = Arc::new(Semaphore::new(10));
-    let mut handles = vec![];
 
-    for entry in entries {
+    let batches: Vec<_> = entries.chunks(10).map(|c| c.to_owned()).collect();
+
+    let mut handles = vec![];
+    for batch in batches {
         let directory = opts.directory.clone();
-        let sem = semaphore.clone();
         handles.push(tokio::spawn(async move {
-            let _ = sem.acquire().await;
-            entry
-                .download_file(directory, sem)
-                .await
-                .expect("Could not download entry");
+            for entry in batch {
+                entry
+                    .download_file(directory.clone())
+                    .await
+                    .expect("Could not download entry");
+                }
         }));
     }
-
     join_all(handles).await;
 
     Ok(())
