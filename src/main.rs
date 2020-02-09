@@ -76,6 +76,7 @@ impl Entry {
 
         if !p.exists() {
             if let Some(url) = self.get_img_url().await {
+                println!("Downloading {} from {}", path, url);
                 let response = reqwest::get(&*url).await?.bytes().await?;
                 let mut dest = File::create(path).await?;
                 dest.write_all(&response).await?;
