@@ -117,18 +117,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
 
-    let batches: Vec<_> = entries.chunks(10).map(|c| c.to_owned()).collect();
+    let batches: Vec<_> = entries.chunks(100).map(|c| c.to_owned()).collect();
 
     let mut handles = vec![];
     for batch in batches {
         let directory = opts.directory.clone();
         handles.push(tokio::spawn(async move {
             for entry in batch {
-                entry
-                    .download_file(directory.clone())
-                    .await
-                    .expect("Could not download entry");
-                }
+                entry.download_file(directory.clone()).await.expect("Could not download entry");
+            }
         }));
     }
     join_all(handles).await;
