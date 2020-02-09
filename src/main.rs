@@ -63,28 +63,30 @@ impl Entry {
         &self,
         directory: String,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if let Some(url) = self.get_img_url().await {
-            let extension_re = Regex::new(r"\.html$").unwrap();
-            let fname = format!(
-                "{} - {}.jpg",
-                extension_re.replace_all(&self.url, ""),
-                self.title
-            );
-            let p = Path::new(&directory).join(Path::new(&fname));
-            let path = &*p.to_string_lossy();
+        let extension_re = Regex::new(r"\.html$").unwrap();
 
-            if !p.exists() {
+        let fname = format!(
+            "{} - {}.jpg",
+            extension_re.replace_all(&self.url, ""),
+            self.title
+        );
+
+        let p = Path::new(&directory).join(Path::new(&fname));
+        let path = &*p.to_string_lossy();
+
+        if !p.exists() {
+            if let Some(url) = self.get_img_url().await {
                 let response = reqwest::get(&*url).await?.bytes().await?;
                 let mut dest = File::create(path).await?;
                 dest.write_all(&response).await?;
             } else {
-                println!("Skipping file {}, file exists", path);
+                println!(
+                    "Skipping file {} - {}, could not load url",
+                    self.url, self.title
+                );
             }
         } else {
-            println!(
-                "Skipping file {} - {}, could not load url",
-                self.url, self.title
-            );
+            println!("Skipping file {}, file exists", path);
         }
 
         Ok(())
