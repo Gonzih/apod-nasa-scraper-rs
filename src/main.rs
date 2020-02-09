@@ -8,6 +8,8 @@ use std::path::Path;
 use tokio::fs::File;
 use tokio::prelude::*;
 
+const N_CHUNKS: usize = 5;
+
 const INDEX_URL: &'static str = "https://apod.nasa.gov/apod/archivepix.html";
 const ENTRY_PREFIX: &'static str = "https://apod.nasa.gov/apod/";
 
@@ -34,7 +36,7 @@ impl Entry {
     }
 
     async fn get_img_url(&self) -> Option<String> {
-        let image_href_re = Regex::new(r"^image/.*\.jpg$").unwrap();
+        let image_href_re = Regex::new(r"^image/.*\.jpe?g$").unwrap();
         let url = self.gen_url();
 
         let index = reqwest::get(&url)
@@ -116,8 +118,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    println!("Found {} entries", entries.len());
 
-    let batches: Vec<_> = entries.chunks(100).map(|c| c.to_owned()).collect();
+    let chunk_size = entries.len()/N_CHUNKS;
+    let batches: Vec<_> = entries.chunks(chunk_size).map(|c| c.to_owned()).collect();
 
     let mut handles = vec![];
     for batch in batches {
