@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate clap;
 
-// use futures::future::join_all;
+use futures::future::join_all;
 use regex::Regex;
 use scraper::{Html, Selector};
 use std::path::Path;
@@ -126,18 +126,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let semaphore = Arc::new(Semaphore::new(10));
-    // let mut handles = vec![];
+    let mut handles = vec![];
 
     for entry in entries {
         let directory = opts.directory.clone();
         let sem = semaphore.clone();
-        entry
-            .download_file(directory, sem)
-            .await
-            .expect("Could not download entry");
+        handles.push(tokio::spawn(async move {
+            let _ = sem.acquire().await;
+            entry
+                .download_file(directory, sem)
+                .await
+                .expect("Could not download entry");
+        }));
     }
 
-    // join_all(handles).await;
+    join_all(handles).await;
 
     Ok(())
 }
