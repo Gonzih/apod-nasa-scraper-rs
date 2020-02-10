@@ -64,11 +64,12 @@ impl Entry {
         directory: String,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let extension_re = Regex::new(r"\.html$").unwrap();
+        let title_cleanup_re = Regex::new(r"/").unwrap();
 
         let fname = format!(
             "{} - {}.jpg",
             extension_re.replace_all(&self.url, ""),
-            self.title
+            title_cleanup_re.replace_all(&self.title, ""),
         );
 
         let p = Path::new(&directory).join(Path::new(&fname));
