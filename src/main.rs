@@ -1,14 +1,15 @@
 #[macro_use]
 extern crate clap;
 
-use futures::future::join_all;
+use futures::stream;
+use futures::stream::StreamExt;
 use regex::Regex;
 use scraper::{Html, Selector};
 use std::path::Path;
 use tokio::fs::File;
 use tokio::prelude::*;
 
-const N_CHUNKS: usize = 5;
+const PARALLEL_LEVEL: usize = 5;
 
 const INDEX_URL: &'static str = "https://apod.nasa.gov/apod/archivepix.html";
 const ENTRY_PREFIX: &'static str = "https://apod.nasa.gov/apod/";
@@ -124,19 +125,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Found {} entries", entries.len());
 
-    let chunk_size = entries.len()/N_CHUNKS;
-    let batches: Vec<_> = entries.chunks(chunk_size).map(|c| c.to_owned()).collect();
-
-    let mut handles = vec![];
-    for batch in batches {
-        let directory = opts.directory.clone();
-        handles.push(tokio::spawn(async move {
-            for entry in batch {
-                entry.download_file(directory.clone()).await.expect("Could not download entry");
+    let handles = stream::iter(
+        entries.into_iter().map(|entry| {
+            let directory = opts.directory.clone();
+            async move {
+                entry.download_file(directory).await.expect("Could not download entry");
             }
-        }));
-    }
-    join_all(handles).await;
+        })
+    ).buffer_unordered(PARALLEL_LEVEL).collect::<Vec<_>>();
+
+    handles.await;
 
     Ok(())
 }
