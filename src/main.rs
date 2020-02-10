@@ -9,8 +9,6 @@ use std::path::Path;
 use tokio::fs::File;
 use tokio::prelude::*;
 
-const PARALLEL_LEVEL: usize = 5;
-
 const INDEX_URL: &'static str = "https://apod.nasa.gov/apod/archivepix.html";
 const ENTRY_PREFIX: &'static str = "https://apod.nasa.gov/apod/";
 
@@ -19,17 +17,22 @@ const ENTRY_PREFIX: &'static str = "https://apod.nasa.gov/apod/";
 struct Opts {
     #[clap(long = "directory", short = "d", default_value = ".")]
     directory: String,
+    #[clap(long = "threads", short = "t", default_value = "5")]
+    threads: usize,
+    #[clap(long = "verbose", short = "v")]
+    verbose: bool,
 }
 
 #[derive(Debug, Clone)]
 struct Entry {
+    verbose: bool,
     url: String,
     title: String,
 }
 
 impl Entry {
-    fn new(url: String, title: String) -> Self {
-        Entry { url, title }
+    fn new(url: String, title: String, verbose: bool) -> Self {
+        Entry { url, title, verbose }
     }
 
     fn gen_url(&self) -> String {
@@ -78,18 +81,25 @@ impl Entry {
 
         if !p.exists() {
             if let Some(url) = self.get_img_url().await {
-                println!("Downloading {} from {}", path, url);
+                if self.verbose {
+                    println!("Downloading {} from {}", path, url);
+                }
+
                 let response = reqwest::get(&*url).await?.bytes().await?;
                 let mut dest = File::create(path).await?;
                 dest.write_all(&response).await?;
             } else {
-                println!(
-                    "Skipping file {} - {}, could not load url",
-                    self.url, self.title
-                );
+                if self.verbose {
+                    println!(
+                        "Skipping file {} - {}, could not load url",
+                        self.url, self.title
+                    );
+                }
             }
         } else {
-            println!("Skipping file {}, file exists", path);
+            if self.verbose {
+                println!("Skipping file {}, file exists", path);
+            }
         }
 
         Ok(())
@@ -113,17 +123,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         for a in b.select(&a_sel) {
             if let Some(href) = a.value().attr("href") {
                 if index_href_re.is_match(href) {
-                    let text = a.text().collect::<String>().clone();
-                    let href = href.to_string().clone();
+                    let text = a.text().collect::<String>();
+                    let href = href.to_string();
 
-                    let entry = Entry::new(href, text);
+                    let entry = Entry::new(href, text, opts.verbose);
                     entries.push(entry);
                 }
             }
         }
     }
 
-    println!("Found {} entries", entries.len());
+    if opts.verbose {
+        println!("Found {} entries", entries.len());
+    }
 
     let handles = stream::iter(
         entries.into_iter().map(|entry| {
@@ -132,7 +144,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 entry.download_file(directory).await.expect("Could not download entry");
             }
         })
-    ).buffer_unordered(PARALLEL_LEVEL).collect::<Vec<_>>();
+    ).buffer_unordered(opts.threads).collect::<Vec<_>>();
 
     handles.await;
 
