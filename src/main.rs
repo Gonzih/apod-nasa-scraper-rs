@@ -4,7 +4,7 @@ extern crate clap;
 use futures::stream;
 use futures::stream::StreamExt;
 use regex::Regex;
-use scraper::{Html, Selector};
+use crabquery::{Document};
 use std::path::Path;
 use tokio::fs::File;
 use tokio::prelude::*;
@@ -49,12 +49,11 @@ impl Entry {
             .text()
             .await
             .expect(&format!("Colud not get response text from {}", url));
-        let document = Html::parse_document(&index);
-        let a_sel = Selector::parse("a").unwrap();
+        let document = Document::from(index);
 
-        for a in document.select(&a_sel) {
-            if let Some(href) = a.value().attr("href") {
-                if image_href_re.is_match(href) {
+        for a in document.select("a") {
+            if let Some(href) = a.attr("href") {
+                if image_href_re.is_match(&href[..]) {
                     return Some(format!("{}{}", ENTRY_PREFIX, href));
                 }
             }
@@ -113,19 +112,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let index_href_re = Regex::new(r"^ap\d{6}\.html$").unwrap();
 
     let index = reqwest::get(INDEX_URL).await?.text().await?;
-    let document = Html::parse_document(&index);
-    let b_sel = Selector::parse("b").unwrap();
-    let a_sel = Selector::parse("a").unwrap();
+    let document = Document::from(index);
 
     let mut entries = vec![];
 
-    for b in document.select(&b_sel) {
-        for a in b.select(&a_sel) {
-            if let Some(href) = a.value().attr("href") {
-                if index_href_re.is_match(href) {
-                    let text = a.text().collect::<String>();
+    for a in document.select("b a") {
+        if let Some(href) = a.attr("href") {
+            if index_href_re.is_match(&href[..]) {
+                if let Some(text) = a.text() {
                     let href = href.to_string();
-
                     let entry = Entry::new(href, text, opts.verbose);
                     entries.push(entry);
                 }
