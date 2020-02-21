@@ -1,6 +1,6 @@
-#[macro_use]
 extern crate clap;
 
+use clap::Clap;
 use futures::stream;
 use futures::stream::StreamExt;
 use regex::Regex;
@@ -116,17 +116,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut entries = vec![];
 
-    for a in document.select("b a") {
-        if let Some(href) = a.attr("href") {
-            if index_href_re.is_match(&href[..]) {
-                if let Some(text) = a.text() {
-                    let href = href.to_string();
-                    let entry = Entry::new(href, text, opts.verbose);
-                    entries.push(entry);
+        for a in document.select("b a") {
+            if let Some(href) = a.attr("href") {
+                if index_href_re.is_match(&href[..]) {
+                    if let Some(text) = a.text() {
+                        let href = href.to_string();
+                        let entry = Entry::new(href, text, opts.verbose);
+                        entries.push(entry);
+                    }
                 }
             }
         }
-    }
 
     if opts.verbose {
         println!("Found {} entries", entries.len());
