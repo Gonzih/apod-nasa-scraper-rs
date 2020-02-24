@@ -16,11 +16,10 @@ struct Opts {
     directory: String,
     #[clap(long = "threads", short = "t", default_value = "50")]
     threads: usize,
-    #[clap(long = "verbose", short = "v")]
-    verbose: bool,
 }
 
 #[derive(WebScraper)]
+#[on_response(on_response)]
 #[on_html("b a[href]", index_handler)]
 #[on_html("a[href]", entry_handler)]
 struct Scraper {
@@ -30,11 +29,19 @@ struct Scraper {
 }
 
 impl Scraper {
+    async fn on_response(&self, response: Response) -> Result<()> {
+        if response.url.ends_with(".jpg") && response.status == 200 {
+            println!("Finished downloading {}", response.url);
+        }
+
+        Ok(())
+    }
+
     async fn index_handler(&self, mut response: Response, a: Element) -> Result<()> {
         if let Some(href) = a.attr("href") {
             if self.index_href_re.is_match(&href[..]) {
                 let href = format!("{}{}", ENTRY_PREFIX, href);
-                println!("Navigating to {}", href);
+                // println!("Navigating to {}", href);
                 response.navigate(href).await?;
             };
         }
@@ -45,21 +52,15 @@ impl Scraper {
     async fn entry_handler(&self, mut response: Response, a: Element) -> Result<()> {
         if let Some(href) = a.attr("href") {
             if self.image_href_re.is_match(&href[..]) {
-                let extension_re = Regex::new(r"\.html$").unwrap();
                 let slash_re = Regex::new(r"/").unwrap();
-                let fname = format!(
-                    "{}.jpg",
-                    slash_re.replace_all(&extension_re.replace_all(&href, ""), "_"),
-                );
+                let fname = slash_re.replace_all(&href, "_");
                 let href = format!("{}{}", ENTRY_PREFIX, href);
-                let p = Path::new(&self.directory).join(Path::new(&fname));
+                let p = Path::new(&self.directory).join(Path::new(&fname.to_string()));
                 let destination = p.to_string_lossy();
 
                 if !p.exists() {
                     println!("Downloading {}", destination);
                     response.download_file(href, destination.to_string()).await?;
-                } else {
-                    println!("Skipping {} - exists", destination);
                 }
             };
         }
