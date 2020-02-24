@@ -78,7 +78,7 @@ async fn main() -> Result<()> {
     let directory = opts.directory.clone();
     let scraper = Scraper { index_href_re, image_href_re, directory };
 
-    let mut crabweb = CrabWeb::new(scraper);
+    let mut crabweb = CrabWeb::new(&scraper);
 
     crabweb.navigate(INDEX_URL).await?;
 
