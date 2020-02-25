@@ -4,7 +4,7 @@ use clap::Clap;
 use regex::Regex;
 use std::path::Path;
 
-use crabweb::*;
+use crabler::*;
 
 const INDEX_URL: &'static str = "https://apod.nasa.gov/apod/archivepix.html";
 const ENTRY_PREFIX: &'static str = "https://apod.nasa.gov/apod/";
@@ -78,15 +78,5 @@ async fn main() -> Result<()> {
     let directory = opts.directory.clone();
     let scraper = Scraper { index_href_re, image_href_re, directory };
 
-    let mut crabweb = CrabWeb::new(scraper);
-
-    crabweb.navigate(INDEX_URL).await?;
-
-    for _ in 0..opts.threads {
-        crabweb.start_worker();
-    }
-
-    crabweb.run().await?;
-
-    Ok(())
+    scraper.run(INDEX_URL, opts.threads).await
 }
