@@ -11,7 +11,7 @@ const ENTRY_PREFIX: &'static str = "https://apod.nasa.gov/apod/";
 
 #[derive(Clap)]
 #[clap(version = "0.1", author = "Potato")]
-struct Opts {
+struct CliOpts {
     #[clap(long = "directory", short = "d", default_value = ".")]
     directory: String,
     #[clap(long = "threads", short = "t", default_value = "50")]
@@ -71,12 +71,12 @@ impl Scraper {
 
 #[tokio::main(threaded_scheduler)]
 async fn main() -> Result<()> {
-    let opts: Opts = Opts::parse();
+    let opts: CliOpts = CliOpts::parse();
 
     let index_href_re = Regex::new(r"^ap\d{6}\.html$").unwrap();
     let image_href_re = Regex::new(r"^image/.*\.jpe?g$").unwrap();
     let directory = opts.directory.clone();
     let scraper = Scraper { index_href_re, image_href_re, directory };
 
-    scraper.run(INDEX_URL, opts.threads).await
+    scraper.run(Opts::new().with_urls(vec![INDEX_URL]).with_threads(opts.threads)).await
 }
