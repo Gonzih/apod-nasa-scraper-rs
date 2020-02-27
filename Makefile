@@ -1,4 +1,3 @@
-DATABASE_URL ?= postgres://postgres:password@localhost/vulnerabilities
 BACKTRACE ?= 0
 CARGO = cargo --color always
 CARGO_ARGS = $(if $(RELEASE),--release) $(if $(STATIC_BINARY), --target=x86_64-unknown-linux-musl)
