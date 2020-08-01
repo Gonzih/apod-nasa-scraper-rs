@@ -207,9 +207,9 @@ checksum = "e7ca8a5221364ef15ce201e8ed2f609fc312682a8f4e0e3d4aa5879764e0fa3b"
 
 [[package]]
 name = "crabler"
-version = "0.1.13"
+version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66a4ff7262962a703bb03b23f1ef72cf7e9d3380983e3e73ec7dfd0af9adc82f"
+checksum = "64fa15f7b4a5b77a011a0e18f57b220708559fcaa10014bc64657581419200c5"
 dependencies = [
  "async-std",
  "async-trait",
@@ -234,9 +234,9 @@ dependencies = [
 
 [[package]]
 name = "crabquery"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "804c33d2eb1f3b98ca63cb72f3ddcd6fc4198ecb72996999e3c63f17db52d910"
+checksum = "0101a6012d5b44e1bb152f00b775dbde9735ac3ee9d18432a4c00d2c25516997"
 dependencies = [
  "html5ever",
  "markup5ever",

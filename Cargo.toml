@@ -9,5 +9,5 @@ regex = "1"
 tokio = { version = "0.2", features = ["full"] }
 clap = "3.0.0-beta.1"
 futures = "0.3.5"
-crabler = "0.1.13"
+crabler = "0.1.14"
 # crabler ={ path = "/home/gnzh/mydev/crabweb" }
