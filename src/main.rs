@@ -12,9 +12,9 @@ const ENTRY_PREFIX: &'static str = "https://apod.nasa.gov/apod/";
 #[derive(Clap)]
 #[clap(version = "0.1", author = "Potato")]
 struct CliOpts {
-    #[clap(long = "directory", short = "d", default_value = ".")]
+    #[clap(long = "directory", short = 'd', default_value = ".")]
     directory: String,
-    #[clap(long = "threads", short = "t", default_value = "50")]
+    #[clap(long = "threads", short = 't', default_value = "50")]
     threads: usize,
 }
 
@@ -69,7 +69,7 @@ impl Scraper {
     }
 }
 
-#[tokio::main(threaded_scheduler)]
+#[tokio::main]
 async fn main() -> Result<()> {
     let opts: CliOpts = CliOpts::parse();
 
