@@ -20,8 +20,8 @@ struct CliOpts {
 
 #[derive(WebScraper)]
 #[on_response(on_response)]
-#[on_html("b a[href]", index_handler)]
-#[on_html("a[href]", entry_handler)]
+#[on_html("b a", index_handler)]
+#[on_html("a", entry_handler)]
 struct Scraper {
     index_href_re: Regex,
     image_href_re: Regex,
@@ -39,6 +39,7 @@ impl Scraper {
 
     async fn index_handler(&self, mut response: Response, a: Element) -> Result<()> {
         if let Some(href) = a.attr("href") {
+            println!("Found some href {}", href);
             if self.index_href_re.is_match(&href[..]) {
                 let href = format!("{}{}", ENTRY_PREFIX, href);
                 println!("Navigating to {}", href);
@@ -61,6 +62,8 @@ impl Scraper {
                 if !p.exists() {
                     println!("Downloading {}", destination);
                     response.download_file(href, destination.to_string()).await?;
+                } else {
+                    println!("Skipping exist file {}", destination);
                 }
             };
         }
