@@ -41,7 +41,7 @@ impl Scraper {
         if let Some(href) = a.attr("href") {
             if self.index_href_re.is_match(&href[..]) {
                 let href = format!("{}{}", ENTRY_PREFIX, href);
-                // println!("Navigating to {}", href);
+                println!("Navigating to {}", href);
                 response.navigate(href).await?;
             };
         }
