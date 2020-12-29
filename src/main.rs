@@ -1,9 +1,9 @@
 extern crate clap;
 
 use clap::Clap;
+use log::{debug, error, info, warn};
 use regex::Regex;
 use std::path::Path;
-use log::{info, warn, error, debug};
 
 use crabler::*;
 
@@ -31,8 +31,10 @@ struct Scraper {
 
 impl Scraper {
     async fn on_response(&self, response: Response) -> Result<()> {
-        if (response.url.ends_with(".jpg") || response.url.ends_with(".jpeg")) && response.status == 200 {
-            warn!("Finished downloading {}", response.url);
+        if let Some(destination) = response.download_destination {
+            if response.status == 200 {
+                warn!("Finished downloading {} -> {}", response.url, destination);
+            }
         }
 
         Ok(())
@@ -62,7 +64,9 @@ impl Scraper {
 
                 if !p.exists() {
                     warn!("Downloading {}", destination);
-                    response.download_file(href, destination.to_string()).await?;
+                    response
+                        .download_file(href, destination.to_string())
+                        .await?;
                 } else {
                     debug!("Skipping exist file {}", destination);
                 }
@@ -80,7 +84,17 @@ async fn main() -> Result<()> {
     let index_href_re = Regex::new(r"^ap\d{6}\.html$").unwrap();
     let image_href_re = Regex::new(r"^image/.*\.jpe?g$").unwrap();
     let directory = opts.directory.clone();
-    let scraper = Scraper { index_href_re, image_href_re, directory };
+    let scraper = Scraper {
+        index_href_re,
+        image_href_re,
+        directory,
+    };
 
-    scraper.run(Opts::new().with_urls(vec![INDEX_URL]).with_threads(opts.threads)).await
+    scraper
+        .run(
+            Opts::new()
+                .with_urls(vec![INDEX_URL])
+                .with_threads(opts.threads),
+        )
+        .await
 }
