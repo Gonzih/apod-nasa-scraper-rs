@@ -7,7 +7,7 @@ use log::{info, warn, error, debug};
 
 use crabler::*;
 
-const INDEX_URL: &'static str = "https://apod.nasa.gov/apod/archivepix.html";
+const INDEX_URL: &'static str = "https://apod.nasa.gov/apod/astropix.html";
 const ENTRY_PREFIX: &'static str = "https://apod.nasa.gov/apod/";
 
 #[derive(Clap)]
@@ -21,8 +21,8 @@ struct CliOpts {
 
 #[derive(WebScraper)]
 #[on_response(on_response)]
-#[on_html("b a", index_handler)]
-#[on_html("a", entry_handler)]
+#[on_html("a[href]", index_handler)]
+#[on_html("center p a[href]", entry_handler)]
 struct Scraper {
     index_href_re: Regex,
     image_href_re: Regex,
@@ -31,8 +31,8 @@ struct Scraper {
 
 impl Scraper {
     async fn on_response(&self, response: Response) -> Result<()> {
-        if response.url.ends_with(".jpg") && response.status == 200 {
-            info!("Finished downloading {}", response.url);
+        if (response.url.ends_with(".jpg") || response.url.ends_with(".jpeg")) && response.status == 200 {
+            warn!("Finished downloading {}", response.url);
         }
 
         Ok(())
@@ -40,10 +40,10 @@ impl Scraper {
 
     async fn index_handler(&self, mut response: Response, a: Element) -> Result<()> {
         if let Some(href) = a.attr("href") {
-            info!("Found some href {}", href);
+            debug!("Found some href {}", href);
             if self.index_href_re.is_match(&href[..]) {
                 let href = format!("{}{}", ENTRY_PREFIX, href);
-                info!("Navigating to {}", href);
+                debug!("Navigating to {}", href);
                 response.navigate(href).await?;
             };
         }
@@ -61,10 +61,10 @@ impl Scraper {
                 let destination = p.to_string_lossy();
 
                 if !p.exists() {
-                    info!("Downloading {}", destination);
+                    warn!("Downloading {}", destination);
                     response.download_file(href, destination.to_string()).await?;
                 } else {
-                    info!("Skipping exist file {}", destination);
+                    debug!("Skipping exist file {}", destination);
                 }
             };
         }
