@@ -25,3 +25,6 @@ test:
 .PHONY: shell
 shell:
 	nix-shell shell.dev.nix
+
+rust-setup:
+	rustup default stable
