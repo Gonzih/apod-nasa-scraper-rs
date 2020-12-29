@@ -76,6 +76,8 @@ dependencies = [
  "async-std",
  "clap",
  "crabler",
+ "femme",
+ "log",
  "regex",
 ]
 

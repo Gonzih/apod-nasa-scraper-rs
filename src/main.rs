@@ -3,6 +3,7 @@ extern crate clap;
 use clap::Clap;
 use regex::Regex;
 use std::path::Path;
+use log::{info, warn, error, debug};
 
 use crabler::*;
 
@@ -31,7 +32,7 @@ struct Scraper {
 impl Scraper {
     async fn on_response(&self, response: Response) -> Result<()> {
         if response.url.ends_with(".jpg") && response.status == 200 {
-            println!("Finished downloading {}", response.url);
+            info!("Finished downloading {}", response.url);
         }
 
         Ok(())
@@ -39,10 +40,10 @@ impl Scraper {
 
     async fn index_handler(&self, mut response: Response, a: Element) -> Result<()> {
         if let Some(href) = a.attr("href") {
-            println!("Found some href {}", href);
+            info!("Found some href {}", href);
             if self.index_href_re.is_match(&href[..]) {
                 let href = format!("{}{}", ENTRY_PREFIX, href);
-                println!("Navigating to {}", href);
+                info!("Navigating to {}", href);
                 response.navigate(href).await?;
             };
         }
@@ -60,10 +61,10 @@ impl Scraper {
                 let destination = p.to_string_lossy();
 
                 if !p.exists() {
-                    println!("Downloading {}", destination);
+                    info!("Downloading {}", destination);
                     response.download_file(href, destination.to_string()).await?;
                 } else {
-                    println!("Skipping exist file {}", destination);
+                    info!("Skipping exist file {}", destination);
                 }
             };
         }
@@ -72,7 +73,7 @@ impl Scraper {
     }
 }
 
-#[tokio::main]
+#[async_std::main]
 async fn main() -> Result<()> {
     let opts: CliOpts = CliOpts::parse();
 
