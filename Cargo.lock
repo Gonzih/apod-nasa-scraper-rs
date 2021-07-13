@@ -425,9 +425,9 @@ checksum = "dcb25d077389e53838a8158c8e99174c5a9d902dee4904320db714f3c653ffba"
 
 [[package]]
 name = "crabler"
-version = "0.1.21"
+version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62c678e7f3ccae39f8b0e038ceec0253d81cee0494b6e6ef4e76f9805cb4aa06"
+checksum = "2674435ca7c4fc2c9d2aea71fa315743df3502d6cf6f7e1cd031fa546ada0b91"
 dependencies = [
  "async-std",
  "async-trait",
