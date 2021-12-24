@@ -1,6 +1,6 @@
 extern crate clap;
 
-use clap::Clap;
+use clap::Parser;
 use log::{debug, error, info, warn};
 use regex::Regex;
 use std::path::Path;
@@ -10,12 +10,12 @@ use crabler::*;
 const INDEX_URL: &'static str = "https://apod.nasa.gov/apod/astropix.html";
 const ENTRY_PREFIX: &'static str = "https://apod.nasa.gov/apod/";
 
-#[derive(Clap)]
+#[derive(Parser, Debug)]
 #[clap(version = "0.1", author = "Potato")]
 struct CliOpts {
     #[clap(long = "directory", short = 'd', default_value = ".")]
     directory: String,
-    #[clap(long = "threads", short = 't', default_value = "50")]
+    #[clap(long = "threads", short = 't', default_value_t = 50)]
     threads: usize,
 }
 
