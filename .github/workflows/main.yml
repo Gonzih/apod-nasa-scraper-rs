@@ -12,6 +12,6 @@ jobs:
         nix_path: nixpkgs=channel:nixos-unstable
     - uses: workflow/nix-shell-action@v3
       with:
-        packages: stdenv,glib,pkgconfig,rustup,cargo,curl,gnumake
+        packages: stdenv,glib,pkgconfig,rustup,cargo,curl,gnumake,openssl
         script: |
           make rust-setup test
