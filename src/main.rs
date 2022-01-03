@@ -1,7 +1,7 @@
 extern crate clap;
 
 use clap::Parser;
-use log::{debug, error, info, warn};
+use log::{info, warn};
 use regex::Regex;
 use std::path::Path;
 
@@ -42,10 +42,10 @@ impl Scraper {
 
     async fn index_handler(&self, mut response: Response, a: Element) -> Result<()> {
         if let Some(href) = a.attr("href") {
-            debug!("Found some href {}", href);
+            info!("Found some href {}", href);
             if self.index_href_re.is_match(&href[..]) {
                 let href = format!("{}{}", ENTRY_PREFIX, href);
-                debug!("Navigating to {}", href);
+                info!("Navigating to {}", href);
                 response.navigate(href).await?;
             };
         }
@@ -68,7 +68,7 @@ impl Scraper {
                         .download_file(href, destination.to_string())
                         .await?;
                 } else {
-                    debug!("Skipping exist file {}", destination);
+                    info!("Skipping exist file {}", destination);
                 }
             };
         }
@@ -79,6 +79,8 @@ impl Scraper {
 
 #[async_std::main]
 async fn main() -> Result<()> {
+    femme::with_level(log::LevelFilter::Info);
+
     let opts: CliOpts = CliOpts::parse();
 
     let index_href_re = Regex::new(r"^ap\d{6}\.html$").unwrap();
