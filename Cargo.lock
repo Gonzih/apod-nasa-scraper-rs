@@ -189,17 +189,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-recursion"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7d78656ba01f1b93024b7c3a0467f1608e4be67d725749fdcd7d2c7678fd7a2"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "async-std"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -467,11 +456,10 @@ checksum = "dcb25d077389e53838a8158c8e99174c5a9d902dee4904320db714f3c653ffba"
 
 [[package]]
 name = "crabler"
-version = "0.1.26"
+version = "0.1.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "146f9bb764d25098d50a8616b40214358f24c38c19441922a87c9e2b0923e296"
+checksum = "3597071f18ac9864abbe49b8fe50d774bf53b7141432c21b6871694f73e380af"
 dependencies = [
- "async-recursion",
  "async-std",
  "async-trait",
  "crabler_derive",
@@ -486,9 +474,9 @@ dependencies = [
 
 [[package]]
 name = "crabler_derive"
-version = "0.1.7"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d07bf660b1462367b0e8417d901afea5ca6d9092ada06c454b5089fadcf325c2"
+checksum = "892d487810ada9d0c7bba3ba072cab60c781b7b93f591fbf853281404382d082"
 dependencies = [
  "proc-macro-error 0.4.12",
  "proc-macro2",
