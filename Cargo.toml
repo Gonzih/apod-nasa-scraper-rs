@@ -8,7 +8,7 @@ edition = "2018"
 regex = "1"
 async-std = { version = "1.11.0", features = ["unstable", "attributes"] }
 clap = { version = "3.1.15", features = ["derive"] }
-log = { version = "0.4.16", features = ["kv_unstable"] }
+log = { version = "0.4.17", features = ["kv_unstable"] }
 femme = "2.2.0"
 crabler = "0.1.28"
 # crabler ={ path = "/home/gnzh/mydev/crabler", features = ["debug"] }
